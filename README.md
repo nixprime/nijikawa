@@ -43,7 +43,7 @@ C++11
 -----
 
 - GCC 4.7.2
-- LOC: 537
+- LOC: 510
 - Build time:
     1. With "-O0 -g": 2.111s
     2. With "-O2": 2.013s
@@ -66,7 +66,7 @@ Scala
 -----
 
 - Scala 2.10.0, Oracle Java HotSpot 64-bit server VM 23.7-b01 (from JDK 7u13)
-- LOC: 338
+- LOC: 324
 - Build time:
     1. With "-g:vars": 6.906s
     2. With "-g:none -optimise": 7.841s
@@ -78,6 +78,8 @@ Scala
   fields rather than setters and getters, since I'm not sure if the latter is
   idiomatic in Scala.
 - Finding a language with longer compile times than C++ is remarkable.
+- Localized implicit conversion (e.g. from a tuple to Ordered[tuple] for the
+  priority queue in `Core`) is wonderful.
 - Pattern matching is wonderful.
 - In a language with mutability, `map` doesn't really seem better than foreach
   loops, and `filter` isn't much better than early `break`.

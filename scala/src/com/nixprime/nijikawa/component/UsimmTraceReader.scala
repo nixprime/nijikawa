@@ -1,13 +1,13 @@
-package com.nixprime.nijikawa.mem_trace
+package com.nixprime.nijikawa.component
 
 import com.nixprime.nijikawa.common.Address
 import java.io.{BufferedReader, FileReader}
 
-class UsimmTraceReader(private val filename: String) extends MemTraceReader {
+class UsimmTraceReader(private val filename: String) extends TraceReader {
   private val fileReader = new FileReader(filename)
   private val fileLineReader = new BufferedReader(fileReader)
 
-  def next(): Option[MemTraceRecord] = {
+  def next(): Option[TraceRecord] = {
     Option(fileLineReader.readLine()) match {
       case Some(line) => {
         line.split(' ') match {
@@ -20,8 +20,8 @@ class UsimmTraceReader(private val filename: String) extends MemTraceReader {
     }
   }
 
-  private def newTraceRecord(dir: String, addrStr: String, precStr: String): MemTraceRecord = {
-    new MemTraceRecord(new Address(hexToLong(addrStr)), precStr.toLong, dir match {
+  private def newTraceRecord(dir: String, addrStr: String, precStr: String): TraceRecord = {
+    new TraceRecord(new Address(hexToLong(addrStr)), precStr.toLong, dir match {
       case "R" => false
       case "W" => true
       case _ => throw new Exception("Unknown memory instruction type " + dir)

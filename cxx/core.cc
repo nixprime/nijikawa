@@ -4,17 +4,6 @@
 
 namespace nijikawa {
 
-void Core::init() {
-  rob_ = std::vector<Cycle>(rob_size_);
-  if (!trace_reader_) {
-    throw std::runtime_error("No trace reader provided");
-  }
-  cur_mem_ = trace_reader_->next();
-  if (!mem_) {
-    throw std::runtime_error("No memory model provided");
-  }
-}
-
 void Core::tick() {
   tickRetire();
   tickMem();

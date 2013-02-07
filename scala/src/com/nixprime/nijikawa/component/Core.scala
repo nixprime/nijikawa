@@ -1,4 +1,4 @@
-package com.nixprime.nijikawa.mem_trace
+package com.nixprime.nijikawa.component
 
 import scala.language.implicitConversions
 
@@ -6,19 +6,16 @@ import com.nixprime.nijikawa.Simulator
 import com.nixprime.nijikawa.common.{MemRequestType, MemResponse, Address, MemRequest}
 import collection.mutable
 
-class MemTraceCore(private val sim: Simulator, private val traceReader: MemTraceReader,
-                   private val requestFn: MemRequest => Unit) {
-  // Parameters
-  var superscalarWidth: Int = 1
-  var robSize: Int = 1
-
+class Core(private val sim: Simulator, private val traceReader: TraceReader,
+                   private val requestFn: MemRequest => Unit, val superscalarWidth: Int,
+                   val robSize: Int) {
   // State
   var robHead: Int = 0
   var robTail: Int = 0
   var robInsns: Int = 0
-  var curMem: Option[MemTraceRecord] = None
+  var curMem: Option[TraceRecord] = traceReader.next()
   var precIssued: Long = 0
-  var rob = new Array[Long](0)
+  var rob = new Array[Long](robSize)
   var mshrs = new mutable.HashMap[Address, Mshr]
   implicit def orderedCycleMemResponse(elem: (Long, MemResponse)): Ordered[(Long, MemResponse)] =
       new Ordered[(Long, MemResponse)] {
@@ -32,11 +29,6 @@ class MemTraceCore(private val sim: Simulator, private val traceReader: MemTrace
   class Mshr(val addr: Address) {
     var issued = false
     var robIndices = List[Int]()
-  }
-
-  def init() {
-    rob = new Array[Long](robSize)
-    curMem = traceReader.next()
   }
 
   def tick() {
@@ -97,7 +89,7 @@ class MemTraceCore(private val sim: Simulator, private val traceReader: MemTrace
     }
   }
 
-  private def issueMem(record: MemTraceRecord, robIndex: Int) {
+  private def issueMem(record: TraceRecord, robIndex: Int) {
     record.isWrite match {
       case true => {
         requestWrite(record.addr)

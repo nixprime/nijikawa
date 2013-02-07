@@ -1,22 +1,15 @@
 package com.nixprime.nijikawa
 
-import dram.SimpleDram
-import mem_trace.{UsimmTraceReader, MemTraceCore}
+import component.{Dram, UsimmTraceReader, Core}
 
 object Nijikawa {
   val terminationCycle: Long = 100000000 // 100 million
 
   def main(args: Array[String]) {
     val sim = new Simulator
-    val dram = new SimpleDram(sim)
+    val dram = new Dram(sim, 1, 4)
     val core_trace_reader = new UsimmTraceReader("/home/jamiel/src/arch_sims/usimm/input/comm1")
-    val core = new MemTraceCore(sim, core_trace_reader, dram.receiveRequest)
-
-    core.superscalarWidth = 4
-    core.robSize = 192
-
-    core.init()
-    dram.init()
+    val core = new Core(sim, core_trace_reader, dram.receiveRequest, 4, 192)
 
     while (sim.now < terminationCycle) {
       core.tick()

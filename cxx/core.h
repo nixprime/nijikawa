@@ -16,33 +16,16 @@ namespace nijikawa {
 class Core : public MemResponseReceiver {
   public:
     Core(Simulator const& sim, TraceReader* trace_reader,
-        MemRequestReceiver* mem) :
-        sim_(sim), trace_reader_(trace_reader), mem_(mem) {}
+        MemRequestReceiver* mem, int superscalar_width, int rob_size) :
+        sim_(sim), trace_reader_(trace_reader), mem_(mem),
+        superscalar_width_(superscalar_width), rob_size_(rob_size),
+        rob_(rob_size, 0) {}
 
-    void init();
     void tick();
 
     virtual void receiveMemResponse(Cycle cycle,
         unique_ptr<MemResponse> mem_resp_ptr) override {
       waiting_responses_.push(std::make_pair(cycle, mem_resp_ptr->addr()));
-    }
-
-    void setMemRequestReceiver(MemRequestReceiver* mem) {
-      mem_ = mem;
-    }
-
-    void setSuperscalarWidth(int superscalar_width) {
-      if (superscalar_width <= 0) {
-        throw std::runtime_error("Invalid superscalar width");
-      }
-      superscalar_width_ = superscalar_width;
-    }
-
-    void setRobSize(int rob_size) {
-      if (rob_size <= 0) {
-        throw std::runtime_error("Invalid ROB size");
-      }
-      rob_size_ = rob_size;
     }
 
     std::uint64_t insnsRetired() const noexcept { return insns_retired_; }

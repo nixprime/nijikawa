@@ -1,15 +1,12 @@
-package com.nixprime.nijikawa.dram
+package com.nixprime.nijikawa.component
 
-import com.nixprime.nijikawa.common.MemRequest
-import com.nixprime.nijikawa.Simulator
 import collection.mutable.ListBuffer
+import com.nixprime.nijikawa.Simulator
+import com.nixprime.nijikawa.common.MemRequest
 
-class SimpleDram(private val sim: Simulator) {
-  var channelBits: Int = 1
-  var channelLsb: Int = 6
-  var bankBits: Int = 4
-  var bankLsb: Int = 13
-  var rowLsb: Int = 17
+class Dram(private val sim: Simulator, val channelBits: Int, val bankBits: Int) {
+  var bankLsb: Int = Dram.RowSizeBits + channelBits
+  var rowLsb: Int = bankLsb + bankBits
 
   var clockDivider: Int = 4
   var tCCD: Int = 4
@@ -24,31 +21,28 @@ class SimpleDram(private val sim: Simulator) {
     val Miss = Value("Miss")
     val Conflict = Value("Conflict")
   }
+
   import RowState._
 
   class Request(val memRequest: MemRequest) {
-    val channel: Int = ((memRequest.addr.value >>> channelLsb) & ((1 << channelBits) - 1)).toInt
+    val channel: Int = ((memRequest.addr.value >>> Dram.OffsetBits) & ((1 << channelBits) - 1)).toInt
     val bank: Int = ((memRequest.addr.value >>> bankLsb) & ((1 << bankBits) - 1)).toInt
     val row: Long = (memRequest.addr.value >>> rowLsb)
   }
 
   class BankState {
-    var openRow: Long = SimpleDram.NoOpenRow
+    var openRow: Long = Dram.NoOpenRow
     var nextRequest: Long = 0
     var nextConflict: Long = 0
   }
 
-  class ChannelState {
+  class ChannelState(numBanks: Int) {
     var waitingRequests = new ListBuffer[Request]()
-    var banks = (new Array[BankState](1 << bankBits)).map(_ => new BankState())
+    var banks = (new Array[Object](numBanks)).map(_ => new BankState())
     var nextRequest: Long = 0
   }
 
-  var channels = new Array[ChannelState](0)
-
-  def init() {
-    channels = (new Array[ChannelState](1 << channelBits)).map(_ => new ChannelState())
-  }
+  var channels = (new Array[Object](1 << channelBits)).map(_ => new ChannelState(1 << bankBits))
 
   def tick() {
     if (sim.now % clockDivider != 0) {
@@ -127,12 +121,14 @@ class SimpleDram(private val sim: Simulator) {
   private def rowState(req: Request): RowState = {
     channels(req.channel).banks(req.bank).openRow match {
       case req.row => RowState.Hit
-      case SimpleDram.NoOpenRow => RowState.Miss
+      case Dram.NoOpenRow => RowState.Miss
       case _ => RowState.Conflict
     }
   }
 }
 
-object SimpleDram {
+object Dram {
+  val OffsetBits: Int = 6
+  val RowSizeBits: Int = 13
   val NoOpenRow: Long = -1
 }

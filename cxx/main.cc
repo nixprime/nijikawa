@@ -15,14 +15,8 @@ const char* const kTraceFilename = "/home/jamiel/src/arch_sims/usimm/input/"
 int main() {
   Simulator sim;
   UsimmTraceReader trace_reader(kTraceFilename);
-  Dram dram(sim);
-  Core core(sim, &trace_reader, &dram);
-
-  core.setSuperscalarWidth(4);
-  core.setRobSize(192);
-
-  core.init();
-  dram.init();
+  Dram dram(sim, 1, 4);
+  Core core(sim, &trace_reader, &dram, 4, 192);
 
   try {
     while (sim.now() < kSimCycles) {

@@ -13,9 +13,23 @@ namespace nijikawa {
 
 class Dram : public MemRequestReceiver {
   public:
-    explicit Dram(Simulator const& sim) : sim_(sim) {}
+    static constexpr int kOffsetBits = 6;
+    static constexpr int kRowSizeBits = 13;
 
-    void init();
+    explicit Dram(Simulator const& sim, int channel_bits, int bank_bits) :
+        sim_(sim), channel_bits_(channel_bits), bank_bits_(bank_bits),
+        bank_lsb_(kRowSizeBits + channel_bits),
+        row_lsb_(bank_lsb_ + bank_bits) {
+      // This has to be done this way instead of using
+      // `std::vector<T>::vector(size_type, T const&)` because that would
+      // require copying ChannelState, which is non-copyable due to containing
+      // a vector of `unique_ptr` (even though said vector would be empty).
+      size_t n_banks_per_channel = size_t(1) << bank_bits;
+      for (size_t i = 0, n = 1 << channel_bits; i < n; i++) {
+        channels_.emplace_back(n_banks_per_channel);
+      }
+    }
+
     void tick();
 
     virtual void receiveMemRequest(unique_ptr<MemRequest> mem_req) override {
@@ -27,7 +41,7 @@ class Dram : public MemRequestReceiver {
 
     // Address mapping: extract DRAM geometric indices from physical address
     Address mapChannel(Address addr) const noexcept {
-      return (addr >> channel_lsb_) & ((Address(1) << channel_bits_) - 1);
+      return (addr >> kOffsetBits) & ((Address(1) << channel_bits_) - 1);
     }
     Address mapBank(Address addr) const noexcept {
       return (addr >> bank_lsb_) & ((Address(1) << bank_bits_) - 1);
@@ -40,11 +54,10 @@ class Dram : public MemRequestReceiver {
     Simulator const& sim_;
 
     // Address mapping (row:bank:channel:offset)
-    int channel_bits_ = 1; // 2 channels
-    int channel_lsb_ = 6;
-    int bank_bits_ = 4; // 16 banks/channel
-    int bank_lsb_ = 13;
-    int row_lsb_ = 17;
+    int channel_bits_;
+    int bank_bits_;
+    int bank_lsb_;
+    int row_lsb_;
 
     // Timing constraints
     Cycle clock_div_ = 4; // Ratio between DRAM and simulator clocks
@@ -89,6 +102,8 @@ class Dram : public MemRequestReceiver {
       std::vector<unique_ptr<Request>> waiting_reqs;
       std::vector<BankState> banks;
       Cycle next_request = 0;
+
+      explicit ChannelState(std::size_t num_banks = 0) : banks(num_banks) {}
     };
 
     std::vector<ChannelState> channels_;

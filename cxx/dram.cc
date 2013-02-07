@@ -2,15 +2,6 @@
 
 namespace nijikawa {
 
-void Dram::init() {
-  size_t n_channels = size_t(1) << channel_bits_;
-  size_t n_banks_per_channel = size_t(1) << bank_bits_;
-  channels_ = std::vector<ChannelState>(n_channels);
-  for (auto& chan : channels_) {
-    chan.banks = std::vector<BankState>(n_banks_per_channel);
-  }
-}
-
 void Dram::tick() {
   if (sim_.now() % clock_div_ != 0) {
     return;
