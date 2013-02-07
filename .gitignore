@@ -1,0 +1,63 @@
+# Global
+.*
+!.gitignore
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+.elc
+auto-save-list
+tramp
+.\#*
+.org-id-locations
+*_archive
+
+# Vim
+.*.sw[a-z]
+*.un~
+Session.vim
+.netrwhist
+
+# Binaries
+bin/
+obj/
+*.slo
+*.lo
+*.o
+*.so
+*.so.*
+*.dylib
+*.dll
+*.lai
+*.la
+*.a
+*.lib
+*.exe
+*.out
+*.app
+
+# Scala
+*.class
+*.log
+
+# SBT builds
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Scala-IDE
+.scala_dependencies
+
+# IntelliJ IDEA
+*.eml
+*.iml
+*.ipr
+*.iws
+.idea/
+out/
+
