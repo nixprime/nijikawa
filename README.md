@@ -73,10 +73,6 @@ Scala
 - Execution time:
     1. With "-g:vars": 15.919s (336.4%)
     2. With "-g:none -optimise": 15.834s (334.6%)
-- Note that the Scala implementation isn't *entirely* comparable to other
-  implementations in terms of LOC; in particular, some classes have public
-  fields rather than setters and getters, since I'm not sure if the latter is
-  idiomatic in Scala.
 - Finding a language with longer compile times than C++ is remarkable.
 - Localized implicit conversion (e.g. from a tuple to Ordered[tuple] for the
   priority queue in `Core`) is wonderful.
