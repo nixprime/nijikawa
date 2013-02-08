@@ -100,22 +100,21 @@ class Dram(private val sim: Simulator, val channelBits: Int, val bankBits: Int) 
     val bank = chan.banks(req.bank)
     val state = rowState(req)
     var reqDelay: Long = 0
-    chan.nextRequest = sim.now + tCCD * clockDivider
+    chan.nextRequest = after(tCCD)
     if (state != RowState.Hit) {
       if (state == RowState.Conflict) {
         // Precharge
         reqDelay += tRP
       }
       // Activate
-      bank.nextConflict = sim.now + (reqDelay + tRAS) * clockDivider
+      bank.nextConflict = after(reqDelay + tRAS)
       reqDelay += tRCD
       bank.openRow = req.row
     }
     // Read/write
     reqDelay += tCCD
-    bank.nextRequest = sim.now + reqDelay * clockDivider
-    val dataDelay = reqDelay + tCL
-    req.memRequest.respond(sim.now + dataDelay * clockDivider)
+    bank.nextRequest = after(reqDelay)
+    req.memRequest.respond(after(reqDelay + tCL))
   }
 
   private def rowState(req: Request): RowState = {
@@ -125,6 +124,8 @@ class Dram(private val sim: Simulator, val channelBits: Int, val bankBits: Int) 
       case _ => RowState.Conflict
     }
   }
+
+  private def after(componentCycles: Long): Long = sim.now + componentCycles * clockDivider
 }
 
 object Dram {

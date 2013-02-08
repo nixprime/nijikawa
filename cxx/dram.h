@@ -93,15 +93,15 @@ class Dram : public MemRequestReceiver {
     struct BankState {
       Address open_row = kNoOpenRow;
       /** The next cycle in which this bank can receive a new request. */
-      Cycle next_request = 0;
+      Cycle next_request = -1;
       /** The next cycle in which this bank can receive a conflict request. */
-      Cycle next_conflict = 0;
+      Cycle next_conflict = -1;
     };
 
     struct ChannelState {
       std::vector<unique_ptr<Request>> waiting_reqs;
       std::vector<BankState> banks;
-      Cycle next_request = 0;
+      Cycle next_request = -1;
 
       explicit ChannelState(std::size_t num_banks = 0) : banks(num_banks) {}
     };
@@ -119,6 +119,10 @@ class Dram : public MemRequestReceiver {
     void issueRequest(unique_ptr<Request> req_ptr);
 
     RequestConflictState requestConflictState(Request const& req) const;
+
+    Cycle after(Cycle component_cycles) const noexcept {
+      return sim_.now() + component_cycles * clock_div_;
+    }
 };
 
 } // namespace nijikawa

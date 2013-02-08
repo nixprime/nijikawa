@@ -38,6 +38,9 @@ obj/
 *.out
 *.app
 
+# Python
+*.pyc
+
 # Scala
 *.class
 *.log

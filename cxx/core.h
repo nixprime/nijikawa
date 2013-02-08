@@ -19,7 +19,9 @@ class Core : public MemResponseReceiver {
         MemRequestReceiver* mem, int superscalar_width, int rob_size) :
         sim_(sim), trace_reader_(trace_reader), mem_(mem),
         superscalar_width_(superscalar_width), rob_size_(rob_size),
-        rob_(rob_size, 0) {}
+        rob_(rob_size, 0) {
+      cur_mem_ = trace_reader_->next();
+    }
 
     void tick();
 

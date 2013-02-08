@@ -60,22 +60,21 @@ void Dram::issueRequest(unique_ptr<Request> req_ptr) {
   // not model *instantaneous* channel bandwidth in the sense that two requests
   // with different conflict states might have their commands or data overlap.
   // We accept this as a simplifying approximation.
-  chan.next_request = sim_.now() + t_ccd_ * clock_div_;
+  chan.next_request = after(t_ccd_);
   if (state != RequestConflictState::Hit) {
     if (state == RequestConflictState::Conflict) {
       // Precharge
       req_delay += t_rp_;
     }
     // Activate
-    bank.next_conflict = sim_.now() + (req_delay + t_ras_) * clock_div_;
+    bank.next_conflict = after(req_delay + t_ras_);
     req_delay += t_rcd_;
     bank.open_row = req.row;
   }
   // Read/write
   req_delay += t_ccd_;
-  bank.next_request = sim_.now() + req_delay * clock_div_;
-  Cycle data_delay = req_delay + t_cl_;
-  req.respond(sim_.now() + data_delay * clock_div_);
+  bank.next_request = after(req_delay);
+  req.respond(after(req_delay + t_cl_));
 }
 
 auto Dram::requestConflictState(Request const& req) const ->
