@@ -77,8 +77,8 @@ Python
   much cleaner than braces.
 - Conceptually, explicit `self` is clean and obvious. In practice, it gets
   tedious rather quickly.
-- Reference semantics means `[MyClass()] * n` creates an array containing `n`
-  references to the *same object*. Python has the same "problem" as Java in
+- Reference semantics mean that `[MyClass()] * n` creates an array containing
+  `n` references to the *same object*. Python has the same problem as Java in
   this regard (primitive types have value semantics, everything else has
   reference semantics).
 
