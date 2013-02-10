@@ -108,8 +108,6 @@ class Dram : public MemRequestReceiver {
 
     std::vector<ChannelState> channels_;
 
-    void tickChannel(ChannelState& chan);
-
     // Choose up to one request from the given channel's waiting request queue
     // to be issued, remove it from the waiting request queue, and return it.
     // If no request should be issued, return null.

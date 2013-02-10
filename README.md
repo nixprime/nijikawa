@@ -35,7 +35,7 @@ C++11
 -----
 
 - GCC 4.7.2
-- LOC: 510
+- LOC: 513
 - Build time:
     1. With "-O0 -g": 2.111s
     2. With "-O2": 2.013s
