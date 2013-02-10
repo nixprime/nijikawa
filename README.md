@@ -61,6 +61,7 @@ C#
 
 - Mono 2.10.8.1
 - LOC: 585
+- Build time: 0.409s
 - Execution time:
     1. Boehm GC: 16.549s (360.9%)
     2. SGen GC: 9.498s (207.2%)
