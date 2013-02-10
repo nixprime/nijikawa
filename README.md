@@ -124,3 +124,22 @@ Scala
   to a function to pass as a function parameter don't seem very clear, and when
   the conditions aren't met, the workaround (`_` parameter) is ugly.
 
+License
+=======
+
+All code in this repository is released under the
+[WTFPLv2](http://www.wtfpl.net/):
+
+>            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+>                    Version 2, December 2004
+>
+> Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+>
+> Everyone is permitted to copy and distribute verbatim or modified
+> copies of this license document, and changing it is allowed as long
+> as the name is changed.
+>
+>            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+>   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+>
+>  0. You just DO WHAT THE FUCK YOU WANT TO.
