@@ -25,18 +25,23 @@ Results
 All implementations are run on a laptop with a Intel i7-2720QM proccessor, 16GB
 DDR3-1333 DRAM, and a 512GB Crucial M4 SSD, running Xubuntu 12.10 x86-64.
 
-All times are best of 5. Unless otherwise specified, all execution time
-percentages are specified relative to the execution time of Prismriver's
-release build.
+All times are best of 5. All memory usage stats refer to peak resident set size
+(since this is what would determine how much memory would actually be needed to
+run some number of jobs simultaneously). Unless otherwise specified, all
+execution time and memory usage percentages and are specified relative to
+Prismriver's release build.
 
 Prismriver (C++11, reference simulator)
 ---------------------------------------
 
-- Commit c88448a7b55f0e4836e090bfb5aa218b8382eb4f
+- Commit 5f7140c1dad43689147785b7bdbb7962ac819bee
 - GCC 4.7.2
 - Execution time:
     1. Checked build: 4.858s
     2. Release build: 4.679s
+- Peak memory usage:
+    1. Checked build: 1808 KB
+    2. Release build: 1680 KB
 - See comments below.
 
 C++11
@@ -52,6 +57,10 @@ C++11
     1. With "-O0 -g": 24.393s (521.3%)
     2. With "-O2": 4.585 (98.0%)
     3. With "-O3": 4.638 (99.1%)
+- Peak memory usage:
+    1. With "-O0 -g": 1072 KB (63.8%)
+    2. With "-O2": 1076 KB (64.0%)
+    3. With "-O3": 1076 KB (64.0%)
 - Prismriver is slightly slower than the much simpler purpose-built
   implementation for the sake of genericity, but not by much.
 - Between range-based `for`, type inference with `auto`, and `unique_ptr`,
@@ -71,6 +80,9 @@ Python
 - Execution time:
     1. CPython: 642.868s (13739.4%)
     2. PyPy: 45.467s (971.7%)
+- Peak memory usage:
+    1. CPython: 4968 KB (295.7%)
+    2. PyPy: 62040 KB (3692.9%)
 - PyPy is the best thing to happen to Python since NumPy and co. Now if only if
   they were compatible, and PyPy supported Py3K.
 - For all the flak Python gets for having meaningful whitespace, it's visually
@@ -93,6 +105,7 @@ Scala
 - Execution time:
     1. With "-g:vars": 15.276 (326.5%)
     2. With "-g:none -optimise": 15.184 (324.5%)
+- Memory usage: 1588 KB (94.5%)
 - Finding a language with longer compile times than C++ is remarkable.
 - Localized implicit conversion (e.g. from a tuple to Ordered[tuple] for the
   priority queue in `Core`) is wonderful.
