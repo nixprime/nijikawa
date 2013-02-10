@@ -48,8 +48,6 @@ C++11
     1. With "-O0 -g": 1072 KB
     2. With "-O2": 1076 KB
     3. With "-O3": 1076 KB
-- Prismriver is slightly slower than the much simpler purpose-built
-  implementation for the sake of genericity, but not by much.
 - Between range-based `for`, type inference with `auto`, and `unique_ptr`,
   C++11 is a significant improvement over C++03.
 - "Modules" through textual inclusion are still terrible, as are build times.
@@ -57,6 +55,23 @@ C++11
   tool-friendly language; there doesn't really seem to be a C++ IDE that can
   keep up with C++11, let alone the macro and template magic thrown around in
   Prismriver.
+
+C#
+--
+
+- Mono 2.10.8.1
+- LOC: 585
+- Execution time:
+    1. Boehm GC: 16.549s (360.9%)
+    2. SGen GC: 9.498s (207.2%)
+- Peak memory usage:
+    1. Boehm GC: 6368 KB (591.8%)
+    2. SGen GC: 10808 KB (1004.5%)
+- The high line count is a combination of C#'s brace placement convention
+  (opening braces are placed on their own line), which results in somewhat
+  sparse-looking code, and the fact that the C# standard library doesn't
+  provide a priority queue class.
+- C# is basically just a nicer Java.
 
 Python
 ------
