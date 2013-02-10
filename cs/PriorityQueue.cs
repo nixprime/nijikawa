@@ -56,12 +56,12 @@ namespace Nijikawa
                 int right = 2 * parent + 2;
                 int biggest = parent;
                 if (left < container.Count &&
-                        container[left].CompareTo(container[biggest]) >= 0)
+                        container[left].CompareTo(container[biggest]) > 0)
                 {
                     biggest = left;
                 }
                 if (right < container.Count &&
-                        container[right].CompareTo(container[biggest]) >= 0)
+                        container[right].CompareTo(container[biggest]) > 0)
                 {
                     biggest = right;
                 }

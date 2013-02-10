@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Nijikawa
@@ -124,7 +125,7 @@ namespace Nijikawa
             }
             foreach (var chan in Channels)
             {
-                if (chan.NextRequest < Sim.Now)
+                if (chan.NextRequest <= Sim.Now)
                 {
                     var req = BestRequest(chan);
                     if (req != null)
