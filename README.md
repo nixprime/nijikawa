@@ -97,6 +97,147 @@ Python
   this regard (primitive types have value semantics, everything else has
   reference semantics).
 
+Rust
+----
+
+Rust 0.8. Does not compile.
+
+One of Rust's major selling points is the fact that it statically checks
+lifetimes, preventing dangling pointers from existing. Unfortunately, while
+porting Nijikawa to Rust, I ran into a problem with the borrow checker:
+
+The `MemRequest` type, which represents a generic memory request, carries three
+pieces of data: the address that the request is to, whether the request is a
+read or write, and a pointer/reference to a `MemResponseReceiver` that will
+process the `MemResponse` generated when the memory request is serviced. (The
+names may vary slightly from language to language, but the concept is always
+the same.)
+
+In Rust, expressing the required lifetime relationship isn't too bad:
+
+    struct MemRequest<'self> {
+        // ...
+        response_receiver: &'self MemResponseReceiver
+    }
+
+meaning "a MemRequest contains a borrowed (non-owning) pointer to a
+MemResponseReceiver that must live as long as the MemRequest". Fair enough.
+
+Next, the `Request` type, which represents a request going to DRAM (it doesn't
+get a more specific name because it's private to the DRAM module), contains
+the DRAM geometry referred to by the address, plus an owning pointer to the
+`MemRequest` that it represents. Since Rust worries about `MemRequest`'s
+lifetime, it worries about `Request`'s lifetime too, and we have to assuage the
+borrow checker again:
+
+    struct Request<'self> {
+        // ...
+        mem_request: ~MemRequest<'self>
+    }
+
+meaning "a Request contains an owning pointer to a MemRequest that lives as
+long as the Request". Ok, I guess.
+
+The `Dram` type encompasses both an extremely simplified DRAM timing model and
+an extremely simplified memory controller model. Since DRAM channels can be
+scheduled independently, each DRAM channel is represented by a `Channel`
+object. Each `Channel` contains a vector of owning pointers to `Requests` that
+are waiting to be issued:
+
+    struct Dram<'self> {
+        // ...
+        channels: ~[Channel<'self>]
+    }
+
+    struct Channel<'self> {
+        // ...
+        waiting_reqs: ~[~Request<'self>]
+    }
+
+This is starting to look rather dubious, and in fact the problem is right here.
+We'll get back to it in a minute.
+
+Right after all hell breaks loose:
+
+    impl<'self> Dram<'self> {
+        fn tick(&mut self) {
+            for chan in self.channels.mut_iter() {
+                // ...
+                match (self.best_request(chan)) {
+                    Some(req) => { self.issue_request(req); }
+                    None => {}
+                }
+            }
+        }
+    }
+
+(By the way, if for some reason you're actually reading the source, the reason
+`best_request` is a `Dram` method and not a `Channel` one is because some
+schedulers may want to choose the best request in a channel based on
+information about other channels.)
+
+This gives us lifetime errors. What happened? We promised Rust that the
+contents of `Channel.waiting_reqs` will live no longer than the containing
+`Channel`. This is a lie, and Rust complains when we try to take a `Request`
+outside of the `Channel` in `Dram.tick()`. It's right to do so, too. When a
+`Request` is inserted into `Channel.waiting_reqs`, Rust okays it on the promise
+that the `Request` won't outlive `Channel`; breaking this promise on `Requests`
+we take out mean that we could end up with a dangling `&MemRequestReceiver`.
+
+So why is this Rust's problem rather than ours? Because we actually *can't*.
+All components (including the `Dram`, and the `Core` that is always the
+`MemResponseReceiver` in practice) live for as long as the containing
+simulation (`main()`). In a perfect world, we'd be able to say something like:
+
+    struct Channel<'self, 'sim> { // sim is the lifetime of the simulation
+        waiting_reqs: ~[~Request<'sim>]
+    }
+
+Then Rust would instead check that the `Request` can't escape the lifetime of
+the simulator, and everything would be fine. But we can't, and it won't.
+
+So how do we work around this conundrum? The Rust IRC (which by the way was
+incredibly helpful on both this issue and other issues that turned out to be
+entirely my fault) suggested two things, and I considered a third:
+
+- Use a managed pointer for `MemRequest.response_receiver`: managed pointers
+  have completely the wrong meaning here, because a memory request does not in
+  any way own the component it goes back to. This is confusing to humans. In
+  the interest of trying to get a Rust implementation working, I tried this
+  approach anyway, got a new torrent of incomprehensible borrowing errors, and
+  gave up.
+- Use an unsafe pointer for `MemRequest.response_receiver`: having to use
+  `unsafe` to do something that is completely safe, in the very first
+  not-completely-trivial Rust program I've ever written, leaves a very bad
+  taste in my mouth. Oh, also, it doesn't work because you can't take an unsafe
+  pointer to a trait.
+- Go back to C++: but I'll really miss sum types, pattern matching, modules not
+  based on textual inclusion, and Rust's overall incredible terseness!
+
+Unfortunately, for all its faults, I pick option (3).
+
+Nitpicking:
+
+- Similarly, having "constructors" be non-special static methods is
+  conceptually elegant, but I *really* miss default constructors and default
+  values for structs.
+- Rust combines traditional enums (types with a bounded set of named values)
+  with sum types into one unified `enum` thing. This is actually kind of
+  annoying because it means that in what looks like a traditional enum, each
+  "value" is actually a kinda-sorta-type, so you can't use comparison (`if
+  my_enum == Foo`) and must use pattern matching instead, even in cases where
+  you really just want comparison (see `Dram.issue_request()`).
+- Pattern matching isn't quite as nice as in Scala because patterns must be
+  literals or variables in Rust, necessitating the use of pattern guards. As a
+  result, `Dram::request_conflict_state()` is slightly less elegant than its
+  Scala equivalent.
+- `Dram::new()` and `Channel::new()` both contain the moral equivalent of
+  Python's `[Something() for _ in range(n)]`, but the Rust version is tediously
+  wordy. On the bright side, Rust's excellent generics meant that the tediously
+  wordy expression could be factored out into a single function used for both.
+- Having to cast pointer-to-object to pointer-to-trait is stupid and tiresome.
+- I miss constexpr functions.
+
 Scala
 -----
 
@@ -117,7 +258,7 @@ Scala
 - In a language with mutability, `map` doesn't really seem better than foreach
   loops, and `filter` isn't much better than early `break`.
 - Folding is nice. `foldLeft` and pattern matching lead to a very clear
-  expression of FR-FCFS in `SimpleDram.bestRequest()`.
+  expression of FR-FCFS in `Dram.bestRequest()`.
 - Arrays of objects are initialized to null like in Java, so
   NullPointerExceptions can occur even in code exclusively using Option[] over
   null.
